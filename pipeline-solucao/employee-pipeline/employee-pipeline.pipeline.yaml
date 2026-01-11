@@ -72,6 +72,9 @@ spec:
             - "package"
         - name: SUBDIRECTORY
           value: ""
+        #DICIONADO
+        - name: MAVEN_IMAGE
+          value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/openshift/openjdk-17
       taskRef:
         resolver: cluster
         params:
