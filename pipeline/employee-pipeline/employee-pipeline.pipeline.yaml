@@ -27,9 +27,6 @@ spec:
       type: string
       description: url of the maven repository
 
-    - name: registry-url
-      type: string
-      description: registry url
 
   workspaces:
     - name: shared-workspace
@@ -72,6 +69,9 @@ spec:
             - "package"
         - name: SUBDIRECTORY
           value: ""
+        - name: MAVEN_IMAGE
+          value: ""
+
       taskRef:
         resolver: cluster
         params:
@@ -128,7 +128,11 @@ spec:
           value: |
             oc apply -f ./src/main/openshift/
             oc wait --for=condition=available --timeout=300s deployment/$(params.deployment-name)
+            echo "-------------- Displaying all the pods"
             oc get pods -l app=$(params.deployment-name)
+        - name: VERSION
+          value latest
+
       taskRef:
         resolver: cluster
         params:

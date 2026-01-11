@@ -10,13 +10,13 @@ spec:
     - name: deployment-name
       value: employee-backend
     - name: git-url
-      value: http://git.domain14.example.com:3000/finesmart/employee-backend.git
+      value: https://github.com/leandroppereira/employee-backend.git
     - name: backend-image
       value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/employee-backend:latest
     - name: maven-repo
-      value: http://nexus.domain14.example.com:8081/repository/maven-public/
+      value: http://nexus-nexus.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/repository/maven-public/
     - name: registry-url
-      value: registry.domain14.example.com
+      value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:

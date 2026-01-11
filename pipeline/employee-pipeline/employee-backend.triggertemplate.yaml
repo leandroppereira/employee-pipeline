@@ -16,29 +16,8 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
+        #add the base name for generated pipelineRun objects
       spec:
-        pipelineRef:
-          name: employee-pipeline
-
-        params:
-          - name: deployment-name
-            value: $(tt.params.git-repo-name)     
-
-          - name: git-url
-            value: $(tt.params.git-repo-url)       
-
-          - name: git-revision
-            value: $(tt.params.git-revision)     
-
-          - name: backend-image
-            value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):latest  
-
-          - name: maven-repo
-            value: http://nexus-nexus.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/repository/maven-public/
-
-          - name: registry-url
-            value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com
-
         workspaces:
           - name: shared-workspace
             volumeClaimTemplate:
@@ -48,3 +27,4 @@ spec:
                 resources:
                   requests:
                     storage: 500Mi
+      #add the trigger template requirements here
