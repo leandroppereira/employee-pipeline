@@ -1,0 +1,143 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: employee-pipeline
+  labels:
+    app: employee-backend
+spec:
+  params:
+    - name: git-url
+      type: string
+      description: url of the git repo for the code of deployment
+
+    - name: git-revision
+      type: string
+      description: revision to be used from repo of the code for deployment
+      default: main
+
+    - name: deployment-name
+      type: string
+      description: name of the deployment to be patched
+
+    - name: backend-image
+      type: string
+      description: image to be built from the code
+
+    - name: maven-repo
+      type: string
+      description: url of the maven repository
+
+    - name: registry-url
+      type: string
+      description: registry url
+
+  workspaces:
+    - name: shared-workspace
+
+  tasks:
+    - name: fetch-source
+      params:
+        - name: URL
+          value: $(params.git-url)
+        - name: REVISION
+          value: $(params.git-revision)
+        - name: SSL_VERIFY
+          value: "false"
+        - name: VERBOSE
+          value: "true"
+        - name: SUBDIRECTORY
+          value: ""
+        - name: DELETE_EXISTING
+          value: "true"
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
+    - name: maven-build
+      runAfter:
+        - fetch-source
+      params:
+        - name: GOALS
+          value:
+            - "-DskipTests"
+            - "package"
+        - name: SUBDIRECTORY
+          value: ""
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: maven
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: maven_settings
+          workspace: shared-workspace
+
+    - name: build-image
+      runAfter:
+        - maven-build
+      params:
+        - name: IMAGE
+          value: $(params.backend-image)
+        - name: DOCKERFILE
+          value: ./src/main/docker/Dockerfile.jvm
+        - name: CONTEXT
+          value: .
+        - name: TLS_VERIFY
+          value: "false"
+        - name: FORMAT
+          value: oci
+        - name: BUILD_EXTRA_ARGS
+          value: "--build-arg REGISTRY_URL=$(params.registry-url)"
+        - name: PUSH_EXTRA_ARGS
+          value: ""
+        - name: SKIP_PUSH
+          value: "false"
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    - name: apply-manifests
+      runAfter:
+        - build-image
+      params:
+        - name: SCRIPT
+          value: |
+            oc apply -f ./src/main/openshift/
+            oc wait --for=condition=available --timeout=300s deployment/$(params.deployment-name)
+            oc get pods -l app=$(params.deployment-name)
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: openshift-client
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: manifest_dir
+          workspace: shared-workspace

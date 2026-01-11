@@ -1,0 +1,50 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: employee-backend
+spec:
+  params:
+    - name: git-repo-url
+      description: The git repository url
+    - name: git-revision
+      description: The git revision
+      default: pipelines-1.0
+    - name: git-repo-name
+      description: The name of the deployment to be created / patched
+
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+      spec:
+        pipelineRef:
+          name: employee-pipeline
+
+        params:
+          - name: deployment-name
+            value: $(tt.params.git-repo-name)     
+
+          - name: git-url
+            value: $(tt.params.git-repo-url)       
+
+          - name: git-revision
+            value: $(tt.params.git-revision)     
+
+          - name: backend-image
+            value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/$(tt.params.git-repo-name):latest  
+
+          - name: maven-repo
+            value: http://nexus-nexus.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/repository/maven-public/
+
+          - name: registry-url
+            value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com
+
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 500Mi

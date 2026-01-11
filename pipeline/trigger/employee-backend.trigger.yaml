@@ -1,0 +1,10 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: employee-backend
+spec:
+  serviceAccountName: pipeline
+  bindings:
+    - ref: employee-backend
+  template:
+    ref: employee-backend
