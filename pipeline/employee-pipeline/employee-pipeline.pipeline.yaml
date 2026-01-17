@@ -5,28 +5,23 @@ metadata:
   labels:
     app: employee-backend
 spec:
-  params:
-    - name: git-url
+  params: 
+    - description: url of the git repo for the code of deployment
+      name: git-url
       type: string
-      description: url of the git repo for the code of deployment
-
-    - name: git-revision
-      type: string
+    - default: main
       description: revision to be used from repo of the code for deployment
-      default: main
-
-    - name: deployment-name
+      name: git-revision
       type: string
-      description: name of the deployment to be patched
-
-    - name: backend-image
+    - description: name of the deployment to be patched
+      name: deployment-name
       type: string
-      description: image to be built from the code
-
-    - name: maven-repo
+    - description: image to be built from the code
+      name: backend-image
       type: string
-      description: url of the maven repository
-
+    - description: url of the maven repository
+      name: maven-repo
+      type: string
 
   workspaces:
     - name: shared-workspace
@@ -57,34 +52,6 @@ spec:
             value: openshift-pipelines
       workspaces:
         - name: output
-          workspace: shared-workspace
-
-    - name: maven-build
-      runAfter:
-        - fetch-source
-      params:
-        - name: GOALS
-          value:
-            - "-DskipTests"
-            - "package"
-        - name: SUBDIRECTORY
-          value: ""
-        - name: MAVEN_IMAGE
-          value: ""
-
-      taskRef:
-        resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: maven
-          - name: namespace
-            value: openshift-pipelines
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-        - name: maven_settings
           workspace: shared-workspace
 
     - name: build-image
@@ -120,6 +87,35 @@ spec:
         - name: source
           workspace: shared-workspace
 
+    - name: maven-build
+      params:
+        - name: MAVEN_IMAGE
+          value: ""
+        - name: GOALS
+          value:
+            - "-DskipTests"
+            - "package"
+        - name: SUBDIRECTORY
+          value: ""
+        
+      runAfter:
+        - fetch-source
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: maven
+          - name: namespace
+            value: openshift-pipelines
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: maven_settings
+          workspace: shared-workspace
+
+
     - name: apply-manifests
       runAfter:
         - build-image
@@ -131,7 +127,7 @@ spec:
             echo "-------------- Displaying all the pods"
             oc get pods -l app=$(params.deployment-name)
         - name: VERSION
-          value latest
+          value: latest
 
       taskRef:
         resolver: cluster
