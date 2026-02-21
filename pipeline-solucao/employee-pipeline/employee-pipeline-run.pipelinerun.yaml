@@ -14,9 +14,9 @@ spec:
     - name: backend-image
       value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)/employee-backend:latest
     - name: maven-repo
-      value: http://nexus-nexus.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/repository/maven-public/
+      value: http://nexus-nexus.apps.cluster-sxrm5.dynamic.redhatworkshops.io/repository/maven-public/
     - name: registry-url
-      value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com
+      value: default-route-openshift-image-registry.apps.cluster-sxrm5.dynamic.redhatworkshops.io
   workspaces:
     - name: shared-workspace
       volumeClaimTemplate:

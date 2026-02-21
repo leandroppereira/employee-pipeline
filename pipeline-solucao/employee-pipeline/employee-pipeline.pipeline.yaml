@@ -66,15 +66,17 @@ spec:
       runAfter:
         - fetch-source
       params:
+        - name: MAVEN_IMAGE
+          value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/openshift/openjdk-17
+        - name: MAVEN_MIRROR_URL
+          value: $(params.maven-repo)
         - name: GOALS
           value:
             - "-DskipTests"
             - "package"
+#            - "-Dmaven.repo.remote=$(params.maven-repo)"
         - name: SUBDIRECTORY
           value: ""
-        #DICIONADO
-        - name: MAVEN_IMAGE
-          value: default-route-openshift-image-registry.apps.cluster-cpjsd.cpjsd.sandbox1789.opentlc.com/openshift/openjdk-17
       taskRef:
         resolver: cluster
         params:
